@@ -1,0 +1,27 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<mule xmlns:http="http://www.mulesoft.org/schema/mule/http" xmlns="http://www.mulesoft.org/schema/mule/core"
+	xmlns:doc="http://www.mulesoft.org/schema/mule/documentation"
+	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://www.mulesoft.org/schema/mule/core http://www.mulesoft.org/schema/mule/core/current/mule.xsd
+http://www.mulesoft.org/schema/mule/http http://www.mulesoft.org/schema/mule/http/current/mule-http.xsd">
+	<http:listener-config name="HTTP_Listener_config" doc:name="HTTP Listener config" doc:id="63f24a81-dae3-40a3-be64-de40402a4045" >
+		<http:listener-connection host="0.0.0.0" port="8081" />
+	</http:listener-config>
+	<flow name="calculatorFlow" doc:id="c48f48cd-8a60-4f59-832d-053bc63c81e5" >
+		<http:listener doc:name="Listener" doc:id="7836f24a-3190-4793-935a-c06c5ec451dc" config-ref="HTTP_Listener_config" path="/calculate"/>
+		<choice doc:name="Choice" doc:id="047ee1ba-624c-4bcb-a2ce-2e508c6acf8e" >
+			<when expression='#[attributes.queryParams.operation == "Add"]'>
+				<set-payload value='#[output application/json&#10; ---&#10; {&#10; 	"result" : payload.firstNum + payload.lastNum&#10; }]' doc:name="Set Payload" doc:id="a874c984-7fc2-445e-b084-aeffe257546b" />
+			</when>
+			<when expression='#[attributes.queryParams.operation == "sub"]'>
+				<set-payload value='#[output application/json&#10;---&#10;{&#10;	"result": payload.firstNum - payload.lastNum&#10;}]' doc:name="Set Payload" doc:id="28d70351-7106-45d8-9fb8-46639348093d" />
+			</when>
+			<when expression='#[attributes.queryParams.operation == "mul"]'>
+				<set-payload value='#[output application/json&#10;---&#10;{&#10;	"result": payload.firstNum * payload.lastNum&#10;}]' doc:name="Set Payload" doc:id="ce9bd067-d076-47cd-a651-b3caae5a5e94" />
+			</when>
+			<when expression='#[attributes.queryParams.operation == "div"]'>
+				<set-payload value='#[output application/json&#10;---&#10;{&#10;	"result": payload.firstNum / payload.lastNum&#10;}]' doc:name="Set Payload" doc:id="cb31b08c-7078-49b5-a9e0-dfa1d9b471a0" />
+			</when>
+		</choice>
+	</flow>
+</mule>
