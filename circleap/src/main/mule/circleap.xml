@@ -1,0 +1,120 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<mule xmlns:db="http://www.mulesoft.org/schema/mule/db" xmlns:ee="http://www.mulesoft.org/schema/mule/ee/core"
+	xmlns:http="http://www.mulesoft.org/schema/mule/http"
+	xmlns="http://www.mulesoft.org/schema/mule/core" xmlns:doc="http://www.mulesoft.org/schema/mule/documentation" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://www.mulesoft.org/schema/mule/core http://www.mulesoft.org/schema/mule/core/current/mule.xsd
+http://www.mulesoft.org/schema/mule/http http://www.mulesoft.org/schema/mule/http/current/mule-http.xsd
+http://www.mulesoft.org/schema/mule/ee/core http://www.mulesoft.org/schema/mule/ee/core/current/mule-ee.xsd
+http://www.mulesoft.org/schema/mule/db http://www.mulesoft.org/schema/mule/db/current/mule-db.xsd">
+	<http:listener-config name="HTTP_Listener_config" doc:name="HTTP Listener config" doc:id="781771bc-f6b9-48c2-a62e-cf55e3b3f83f" >
+		<http:listener-connection host="0.0.0.0" port="8083"/>
+	</http:listener-config>
+	<http:request-config name="HTTP_Request_configuration" doc:name="HTTP Request configuration" doc:id="bc67fce0-451e-4cd9-8c4f-effcdd005a92">
+		<http:request-connection host="0.0.0.0" port="8081"/>
+	</http:request-config>
+	<http:listener-config name="HTTP_Listener_config1" doc:name="HTTP Listener config" doc:id="6b41f397-9eaa-45ff-b707-c6f750324db4" >
+		<http:listener-connection host="0.0.0.0" port="8082" />
+	</http:listener-config>
+	<http:listener-config name="HTTP_Listener_config2" doc:name="HTTP Listener config" doc:id="d61ec144-4aac-4892-a4ef-68ae6798bc17" >
+		<http:listener-connection host="0.0.0.0" port="8081" />
+	</http:listener-config>
+	<db:config name="Database_Config" doc:name="Database Config" doc:id="7c1d4903-a5b9-47f1-84ef-38d9f29763a7" >
+		<db:my-sql-connection host="localhost" port="3306" user="root" password="sunay" database="firstdb" />
+	</db:config>
+	<flow name="circleapFlow" doc:id="378650f5-d2d8-4ebd-8c9d-644912b69285" >
+		<http:listener doc:name="Listener" doc:id="31c5d705-0b9b-41f5-849b-ad0c7c4811ba" config-ref="HTTP_Listener_config" path="/circleap"/>
+		<logger level="INFO" doc:name="Logger" doc:id="d912b5cb-9c15-4388-995b-f7920530bfa5" message='start logger'/>
+		<set-variable value="#[payload.operation]" doc:name="Set Variable" doc:id="c8f56f9c-ed76-44fe-af77-17fa816b5a1f" variableName="opvar" />
+		<set-variable value="#[payload.radius]" doc:name="Set Variable" doc:id="0f6587ad-9c9a-48a0-a15c-24c863f317df" variableName="radvar"/>
+		<set-variable value="#[payload.pi]" doc:name="Set Variable" doc:id="1c259af3-fecd-4cba-b302-9fd8439afd2e" variableName="pivar"/>
+		<choice doc:name="Choice" doc:id="4ceb15d0-7dbb-459d-88bb-dd1ba36b4090" >
+			<when expression='#[vars.opvar == "area"]'>
+				<set-payload value='#[%dw 2.0&#10;output application/json&#10;---{&#10;	"result" :(vars.pivar) * (vars.radvar)&#10;}]' doc:name="Set Payload" doc:id="41705bc0-b506-41d3-a1c6-b5e0c50e6eca" />
+			</when>
+			<when expression='#[vars.opvar=="perimeter"]'>
+				<set-payload value='#[output application/json&#10;---&#10;{&#10;	"result" : 2*(vars.pivar)*(vars.radvar)&#10;	&#10;	}]' doc:name="Set Payload" doc:id="6603dbf7-bde7-496f-a059-3359666dd51f" />
+			</when>
+			<otherwise >
+				<logger level="INFO" doc:name="Logger" doc:id="55071f8e-89a1-41d8-bc7d-73afefa0023d" message="default block"/>
+			</otherwise>
+		</choice>
+		<logger level="INFO" doc:name="Logger" doc:id="be97d6fe-4143-4e6c-9d1e-a1c33ae6d626" message="end logger"/>
+	</flow>
+	<flow name="circleapFlow1" doc:id="3f7d1373-2496-4903-bc17-65fbdcaf511d" >
+		<http:listener doc:name="Listener" doc:id="7d3d274d-c223-40f0-9d8d-e681ddd0523d" config-ref="HTTP_Listener_config1" path="/testapi"/>
+		<logger level="INFO" doc:name="Logger" doc:id="ae98bc70-da79-43da-b9a5-451120e3e1d6" message="starting logger"/>
+		<set-variable value="#[payload.radius]" doc:name="Set Variable" doc:id="f0b6cd93-3052-4f32-a423-d1297dd58de3" variableName="ravar"/>
+		<set-variable value="#[payload.pi]" doc:name="Set Variable" doc:id="89e451a3-16e6-41ab-baf0-638e457f16ae" variableName="pvar"/>
+		<ee:transform doc:name="Transform Message" doc:id="f6bd4c51-b145-4bec-a7c0-75e708de4bdd" >
+			<ee:message >
+				<ee:set-payload ><![CDATA[%dw 2.0
+output application/json
+---
+{
+	radius:7,
+	pi:3.14,
+	
+}]]></ee:set-payload>
+			</ee:message>
+		</ee:transform>
+		<http:request method="GET" doc:name="Request" doc:id="44617712-edc0-4ed6-b8e0-9dc6cb168997" config-ref="HTTP_Request_configuration" path="/circleap"/>
+		<logger level="INFO" doc:name="Logger" doc:id="c965c3f0-67ef-4c93-81d0-f2f1d820a9cf" message="end logger"/>
+	</flow>
+	<flow name="dbflow" doc:id="4610c70d-f64f-46e2-9063-b0db7fcc7290" >
+		<http:listener doc:name="Listener" doc:id="ada3e009-abd1-4ac3-9575-36090b723c22" config-ref="HTTP_Listener_config2" path="/db"/>
+		<db:select doc:name="Select" doc:id="d9b84b27-0c19-48f6-9a0b-07998615df01" config-ref="Database_Config">
+			<db:sql ><![CDATA[select *from student where student_rollno = 6;]]></db:sql>
+		</db:select>
+		<logger level="INFO" doc:name="Logger" doc:id="5bed1543-5ccc-4e5b-b107-082472ec699b" message="#[payload]"/>
+		<ee:transform doc:name="Transform Message" doc:id="83c57a38-3298-41ee-8a69-1fe8283a30d9" >
+			<ee:message >
+				<ee:set-payload ><![CDATA[%dw 2.0
+output application/json
+---
+{
+	name:payload.student_name[0],
+	rollno:payload.student_rollno[0]
+}]]></ee:set-payload>
+			</ee:message>
+		</ee:transform>
+	</flow>
+	<flow name="dbflow2" doc:id="5f43fa69-ace4-42c0-bc85-671ecb6122e5" >
+		<http:listener doc:name="Listener" doc:id="6945c44b-377c-4911-bd66-a1c7f2a63c70" config-ref="HTTP_Listener_config2" path="/db1"/>
+		<db:select doc:name="Select" doc:id="2153c858-24de-4faa-831d-8e4c772ad4a5" config-ref="Database_Config">
+			<db:sql ><![CDATA[select *from student where student_rollno= :rollno]]></db:sql>
+			<db:input-parameters ><![CDATA[#[{
+	'rollno': payload.rollno
+}]]]></db:input-parameters>
+		</db:select>
+		<ee:transform doc:name="Transform Message" doc:id="14f8e206-cb95-4f7b-9514-a56721b500fc" >
+			<ee:message >
+				<ee:set-payload ><![CDATA[%dw 2.0
+output application/json
+---
+{
+	name:payload.student_name[0],
+	rollno:payload.student_rollno[0]
+	
+}
+]]></ee:set-payload>
+			</ee:message>
+		</ee:transform>
+		<logger level="INFO" doc:name="Logger" doc:id="3fab2015-3309-4d6a-9521-38d4f9720550" message="#[payload]"/>
+	</flow>
+	<flow name="circleapFlow2" doc:id="63f24454-be0c-4d63-a91b-f21ba827f1ab" >
+		<http:listener doc:name="Listener" doc:id="dba2b2a2-4f36-45e8-9d4c-ffc062dcdd1e" config-ref="HTTP_Listener_config2" path="/dbinsert"/>
+		<db:update doc:name="Update" doc:id="93611e77-c508-44da-b438-6991edc778fc" config-ref="Database_Config">
+			<db:sql ><![CDATA[update student set student_rollno = 10 where student_name = 'yashwanth']]></db:sql>
+		</db:update>
+		<ee:transform doc:name="Transform Message" doc:id="e1b8a36b-ac92-494d-816b-3f8844d59d60" >
+			<ee:message >
+				<ee:set-payload ><![CDATA[%dw 2.0
+output application/json
+---
+{"messsage" : "success"
+	
+}]]></ee:set-payload>
+			</ee:message>
+		</ee:transform>
+	</flow>
+</mule>
